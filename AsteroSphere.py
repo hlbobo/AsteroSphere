@@ -10,7 +10,7 @@ def createAstCluster():
 
     for i in range(num_asteroids):
         random_x = random.randint(1700, 2500)
-        random_y = random.randint(120, 900)
+        random_y = random.randint(200, 900)
         scale = random.uniform(0.3, 0.95)
         surface = pygame.transform.rotozoom(asteroid_surface, 0, scale)
         rect = surface.get_rect(center=(random_x, random_y))
@@ -28,20 +28,28 @@ def drawAst(asteroids):
     for surface, rect in asteroids:
         screen.blit(surface, rect)
 
-def check_AstCollision(asteroids):
+def checkAstCollision(asteroids):
     for surface, rect in asteroids:
         if collision_rect.colliderect(rect):
             return False
-    if collision_rect.top <= -100 or collision_rect.bottom >= 1280:
+    return True
+
+def game_over():   
+    if collision_rect.top <= -100 or collision_rect.bottom >= 1280 or current_fuel<=0:
         return False
     return True
 
 def check_BulletCollision(bullet, asteroid_rect):
     return bullet.colliderect(asteroid_rect)
 
+def drawFuelCan (fuel_cans):
+    for fuel_can in fuel_cans:
+        screen.blit(fuel_can)
+
 screen_width = 1280
 screen_height = 720
 screen = pygame.display.set_mode((screen_width,screen_height))
+pygame.display.set_caption("AsteroSphere")
 clock = pygame.time.Clock()
 game_run = True
 
@@ -69,9 +77,17 @@ ship_rotation = 0
 # dash
 dash_timer = 0
 dash_duration = 750
+dash_cooldown = 2000
+last_dash_time = 0
 dashing = False
 returning = False
 return_point = 200
+
+# combustibil
+fuel_ammount = 1200
+current_fuel = 1200
+fuel_display = 100
+fuel_cans = []
 
 # asteroizi
 asteroid_surface = pygame.image.load('assets/asteroid.png').convert_alpha()
@@ -80,95 +96,125 @@ SPAWNAST = pygame.USEREVENT
 pygame.time.set_timer(SPAWNAST,1700)
 
 while True:
+    pygame.font.init() 
     events=pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
             pygame.quit()
             quit()
 
-        keys = pygame.key.get_pressed()
         if event.type == pygame.KEYDOWN:
-            if keys[pygame.K_r] and game_run:
+            if event.key == pygame.K_r and game_run:
                 ship_rotation += 1
+
             if ship_rotation == 0:
-                if keys[pygame.K_SPACE] and game_run:
+                if event.key == pygame.K_SPACE and game_run:
                     ship_movement_y = 0
                     ship_movement_y -= 8
 
-                if keys[pygame.K_a] and game_run:
-                    ship_movement_x = 0
-                    ship_movement_x += 2
-                    dash_timer = pygame.time.get_ticks()
-                    dashing = True
-                    returning = False
+                if event.key == pygame.K_a and game_run:
+                    current_time = pygame.time.get_ticks()
+                    if current_time - last_dash_time > dash_cooldown:
+                        ship_movement_x = 0
+                        ship_movement_x += 2
+                        current_fuel -= 3
+                        dash_timer = current_time
+                        last_dash_time = current_time
+                        dashing = True
+                        returning = False
 
-                if keys[pygame.K_d] and game_run:
-                    ship_movement_x = 0
-                    ship_movement_x -= 3
-                    dash_timer = pygame.time.get_ticks()
-                    dashing = True
-                    returning = False
+                if event.key == pygame.K_d and game_run:
+                    current_time = pygame.time.get_ticks()
+                    if current_time - last_dash_time > dash_cooldown:
+                        ship_movement_x = 0
+                        ship_movement_x -= 3
+                        current_fuel -= 3
+                        dash_timer = current_time
+                        last_dash_time = current_time
+                        dashing = True
+                        returning = False
 
-                if keys[pygame.K_w] and game_run:
+                if event.key == pygame.K_w and game_run:
                     bullet_x = ship_rect.centerx 
                     bullet_y = ship_rect.centery + ship_rect.height // 2 - bullet_height // 2
                     bullet_rect = pygame.Rect(bullet_x, bullet_y, bullet_width, bullet_height)
                     bullets.append({"rect": bullet_rect, "dir": "up"})
                     
             if ship_rotation == 1:
-                if keys[pygame.K_SPACE] and game_run:
+                if event.key == pygame.K_SPACE and game_run:
                     ship_movement_y = 0
                     ship_movement_y -= 8
 
-                if keys[pygame.K_a] and game_run:
-                    ship_movement_x = 0
-                    ship_movement_x += 2
-                    dash_timer = pygame.time.get_ticks()
-                    dashing = True
-                    returning = False
+                if event.key == pygame.K_a and game_run:
+                    current_time = pygame.time.get_ticks()
+                    if current_time - last_dash_time > dash_cooldown:
+                        ship_movement_x = 0
+                        ship_movement_x += 2
+                        current_fuel -= 3
+                        dash_timer = current_time
+                        last_dash_time = current_time
+                        dashing = True
+                        returning = False
 
-                if keys[pygame.K_d] and game_run:
+                if event.key == pygame.K_d and game_run:
                     bullet_x = ship_rect.centerx + ship_rect.width // 2 - bullet_width // 2
                     bullet_y = ship_rect.centery
-                    bullet_rect = pygame.Rect(bullet_x, bullet_y, bullet_width, bullet_height)
+                    bullet_rect = pygame.Rect(bullet_x, bullet_y, bullet_height, bullet_width)
                     bullets.append({"rect": bullet_rect, "dir": "right"})
 
-                if keys[pygame.K_w] and game_run:
-                    ship_movement_y = 0
-                    ship_movement_y += 5
-                    dash_timer = pygame.time.get_ticks()
-                    dashing = True
+                if event.key == pygame.K_w and game_run:
+                    current_time = pygame.time.get_ticks()
+                    if current_time - last_dash_time > dash_cooldown:
+                        ship_movement_y = 0
+                        ship_movement_y += 3
+                        current_fuel -= 3
+                        dash_timer = current_time
+                        last_dash_time = current_time
+                        dashing = True
+                        returning = False
             
             if ship_rotation == 2:
-                if keys[pygame.K_SPACE] and game_run:
+                if event.key == pygame.K_SPACE and game_run:
                     ship_movement_y = 0
                     ship_movement_y -= 8
 
-                if keys[pygame.K_a] and game_run:
+                if event.key == pygame.K_a and game_run:
                     bullet_x = ship_rect.centerx + ship_rect.width // 2 - bullet_width // 2
                     bullet_y = ship_rect.centery
-                    bullet_rect = pygame.Rect(bullet_x, bullet_y, bullet_width, bullet_height)
+                    bullet_rect = pygame.Rect(bullet_x, bullet_y, bullet_height, bullet_width)
                     bullets.append({"rect": bullet_rect, "dir": "left"})
 
-                if keys[pygame.K_d] and game_run:
-                    ship_movement_x = 0
-                    ship_movement_x -= 3
-                    dash_timer = pygame.time.get_ticks()
-                    dashing = True
-                    returning = False
+                if event.key == pygame.K_d and game_run:
+                    current_time = pygame.time.get_ticks()
+                    if current_time - last_dash_time > dash_cooldown:
+                        ship_movement_x = 0
+                        ship_movement_x -= 3
+                        current_fuel -= 3
+                        dash_timer = current_time
+                        last_dash_time = current_time
+                        dashing = True
+                        returning = False
                     
-                if keys[pygame.K_w] and game_run:
-                    ship_movement_y = 0
-                    ship_movement_y += 5
-                    dash_timer = pygame.time.get_ticks()
-                    dashing = True
+                if event.key == pygame.K_w and game_run:
+                    current_time = pygame.time.get_ticks()
+                    if current_time - last_dash_time > dash_cooldown:
+                        ship_movement_y = 0
+                        ship_movement_y += 3
+                        current_fuel -= 3
+                        dash_timer = current_time
+                        last_dash_time = current_time
+                        dashing = True
+                        returning = False
 
-            if keys[pygame.K_SPACE] and game_run == False:
+            if event.key == pygame.K_SPACE and game_run == False:
                 game_run = True
                 asteroid_list.clear()
                 bullets.clear()
+                fuel_cans.clear()
                 ship_rect.center = (200,360)
                 ship_rotation = 0
+                current_fuel = 1200
+                fuel_display = 100
                 ship_movement_y = 0
                 ship_movement_x = 0
 
@@ -181,29 +227,6 @@ while True:
         bg_x_pos = 0
 
     if game_run:
-        # ship
-        collision_rect = ship_rect.inflate((-40, -20))
-        ship_movement_y += gravity
-        ship_rect.centery += ship_movement_y
-        ship_rect.centerx += ship_movement_x
-        screen.blit(ship_surface, ship_rect)
-
-        # dash
-        if dashing and pygame.time.get_ticks() - dash_timer >= dash_duration:
-            ship_movement_x = 0
-            ship_movement_y -= 0.2
-            dashing = False
-            returning = True
-
-        if returning:
-            if abs(ship_rect.centerx - return_point) < 1:
-                ship_rect.centerx = return_point
-                returning = False
-            elif ship_rect.centerx > return_point:
-                ship_rect.centerx -= 1
-            elif ship_rect.centerx < return_point:
-                ship_rect.centerx += 0.5
-
         # gloanțe
         for bullet in bullets:
             if bullet["dir"] == "up":
@@ -228,11 +251,42 @@ while True:
                     asteroid_list.remove((surface, asteroid_rect))
                     break
 
+        # ship
+        collision_rect = ship_rect.inflate((-40, -20))
+        ship_movement_y += gravity
+        ship_rect.centery += ship_movement_y
+        ship_rect.centerx += ship_movement_x
+        screen.blit(ship_surface, ship_rect)
+        
+        # combustibil
+        font = pygame.font.SysFont("Arial", 20)
+        current_fuel -= 1
+        fuel_display -= 1
+        gauge = font.render(f"Fuel:  {current_fuel}", True, (255, 255, 255))
+        screen.blit(gauge, (50, 50))
+    
+        # dash
+        if dashing and pygame.time.get_ticks() - dash_timer >= dash_duration:
+            ship_movement_x = 0
+            ship_movement_y -= 0.2
+            dashing = False
+            returning = True
+
+        if returning:
+            if abs(ship_rect.centerx - return_point) < 1:
+                ship_rect.centerx = return_point
+                returning = False
+            elif ship_rect.centerx > return_point:
+                ship_rect.centerx -= 1
+            elif ship_rect.centerx < return_point:
+                ship_rect.centerx += 0.5
 
         # asteroids
-        game_run = check_AstCollision(asteroid_list)
+        game_run = checkAstCollision(asteroid_list)
         asteroid_list = moveAst(asteroid_list)
         drawAst(asteroid_list)
+
+        game_run = game_over()
 
     pygame.display.update()
     clock.tick(120)
