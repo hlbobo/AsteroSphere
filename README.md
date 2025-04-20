@@ -1,2 +1,3 @@
 # AsteroSphere
-Space Dodger Shooter
+
+Space Dodger Shooter inspired by Flappy Bird, Hill Climb Racing & Asteroids 
