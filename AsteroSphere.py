@@ -1,4 +1,5 @@
 import pygame, sys, random
+from sys import exit
 
 class Button:
     def __init__(self, pos, image, text_input, base_clr, hover_clr):
@@ -30,10 +31,10 @@ class Button:
 
 class Quadtree:
     def __init__(self, boundary, capacity):
-        self.boundary = boundary  # A pygame.Rect representing the boundary of this node
-        self.capacity = capacity  # Maximum objects before subdivision
-        self.objects = []  # Objects contained in this node
-        self.divided = False  # Tracks whether this node is subdivided
+        self.boundary = boundary
+        self.capacity = capacity
+        self.objects = []
+        self.divided = False 
 
     def subdivide(self):
         x, y, w, h = self.boundary
@@ -48,32 +49,28 @@ class Quadtree:
         self.divided = True
 
     def insert(self, obj):
-        if not self.boundary.colliderect(obj):  # Ignore if object isn't in this node
+        if not self.boundary.colliderect(obj):
             return False
 
-        if len(self.objects) < self.capacity:  # Add directly if within capacity
+        if len(self.objects) < self.capacity:
             self.objects.append(obj)
             return True
         else:
             if not self.divided:
                 self.subdivide()
-            # Attempt to add to child nodes
             return (self.northeast.insert(obj) or
                     self.northwest.insert(obj) or
                     self.southeast.insert(obj) or
                     self.southwest.insert(obj))
 
     def query(self, range_rect, found_objects):
-        # If the range doesn't intersect this boundary, skip
         if not self.boundary.colliderect(range_rect):
             return found_objects
 
-        # Check for objects in this node within the range
         for obj in self.objects:
             if range_rect.colliderect(obj):
                 found_objects.append(obj)
 
-        # Recursively query child nodes if subdivided
         if self.divided:
             self.northwest.query(range_rect, found_objects)
             self.northeast.query(range_rect, found_objects)
@@ -127,8 +124,8 @@ pygame.display.set_caption("AsteroSphere")
 pygame.font.init()
 pygame.mixer.init(frequency = 44100, size = -16, channels = 2, buffer = 2**12)
 channel1 = pygame.mixer.Channel(1)
-shoot = pygame.mixer.Sound('assets/laser.wav')
-bgm = pygame.mixer.music.load('assets/bgm.mp3')
+shoot = pygame.mixer.Sound('assets/Audio/laser.mp3')
+bgm = pygame.mixer.music.load('assets/Audio/bgm.mp3')
 clock = pygame.time.Clock()
 
 # variabile joc
@@ -146,8 +143,8 @@ highscore = 0
 score_increment = 100
 update_score_event = pygame.USEREVENT + 2 
 
-button_surface = pygame.transform.scale_by(pygame.image.load('assets/button.png'), 0.1).convert()
-button1_surface = pygame.image.load('assets/button1.png').convert_alpha()
+button_surface = pygame.transform.scale_by(pygame.image.load('assets/Images/button.png'), 1.70).convert_alpha()
+button1_surface = pygame.transform.scale_by(pygame.image.load('assets/Images/button1.png'),1.90).convert_alpha()
 game_run = True
 current_state = "main_menu"
 
@@ -155,11 +152,11 @@ current_state = "main_menu"
 bullet_pool = [Bullet() for _ in range(50)]
 
 # fundal
-bg_surface = pygame.transform.scale_by((pygame.image.load('assets/bg.png')), 0.8).convert()
+bg_surface = pygame.transform.scale_by((pygame.image.load('assets/Images/bg.png')), 0.8).convert()
 bg_x_pos = 0
 
 # navă
-ship_surface = pygame.image.load('assets/ship/ship-0.png').convert_alpha()
+ship_surface = pygame.transform.scale_by(pygame.image.load('assets/Images/ship/ship-0.png'), 0.85).convert_alpha()
 ship_rect = ship_surface.get_rect(center = (270,360))
 collision_rect = ship_rect.inflate(-35, -35)
 ship_movement_y = 0
@@ -178,12 +175,12 @@ return_point = 270
 # combustibil
 current_fuel = 2400
 fuel_display = 100
-fuel_can_surface = pygame.image.load('assets/fuel.png').convert_alpha()
+fuel_can_surface = pygame.transform.scale_by(pygame.image.load('assets/Images/fuel.png'), 0.85).convert_alpha()
 fuel_cans = []
 SPAWNFUEL = pygame.USEREVENT
 
 # asteroizi
-asteroid_surface = pygame.image.load('assets/asteroid.png').convert_alpha()
+asteroid_surface = pygame.image.load('assets/Images/asteroid.png').convert_alpha()
 asteroid_list = []
 SPAWNAST = pygame.USEREVENT+1
 
@@ -193,7 +190,7 @@ def draw_bg(): # afișează fundalul
 
 def createAstCluster(): # creează mulțimea de asteroizi
     cluster = []
-    num_asteroids = random.randint(1 + level, 3 + level)  # Number per cluster
+    num_asteroids = random.randint(1 + level, 2 + level)
 
     for i in range(num_asteroids):
         random_x = random.randint(1700, 2600)
@@ -377,7 +374,7 @@ def game(): # ecranul de joc
     fuel_display = 100
     ship_movement_y = 0
     ship_movement_x = 0
-    pygame.mixer.music.play(-1)
+    
     while True:
         quadtree = Quadtree(pygame.Rect(0, 0, screen_width, screen_height), capacity=4)
 
@@ -396,7 +393,7 @@ def game(): # ecranul de joc
                     ship_rotation = (ship_rotation + 1) % 3
 
                 if ship_rotation == 0:
-                    ship_surface = pygame.image.load('assets/ship/ship-0.png').convert_alpha()
+                    ship_surface = pygame.image.load('assets/Images/ship/ship-0.png').convert_alpha()
                     if event.key == pygame.K_SPACE and game_run:
                         ship_movement_y = 0
                         ship_movement_y -= 8
@@ -427,7 +424,7 @@ def game(): # ecranul de joc
                         shoot_bullet()
                         
                 if ship_rotation == 1:
-                    ship_surface = pygame.image.load('assets/ship/ship-7.png').convert_alpha()
+                    ship_surface = pygame.image.load('assets/Images/ship/ship-7.png').convert_alpha()
                     if event.key == pygame.K_SPACE and game_run:
                         ship_movement_y = 0
                         ship_movement_y -= 8
@@ -458,7 +455,7 @@ def game(): # ecranul de joc
                             returning = False
                 
                 if ship_rotation == 2:
-                    ship_surface = pygame.image.load('assets/ship/ship-8.png').convert_alpha()
+                    ship_surface = pygame.image.load('assets/Images/ship/ship-8.png').convert_alpha()
                     if event.key == pygame.K_SPACE and game_run:
                         ship_movement_y = 0
                         ship_movement_y -= 8
@@ -507,7 +504,7 @@ def game(): # ecranul de joc
             upAndDrawBullets()
             handle_BulletCollision(quadtree)
 
-            # ship
+            # navă
             global collision_rect
             collision_rect = ship_rect.inflate((-35, -35))
             ship_movement_y += gravity
@@ -531,25 +528,22 @@ def game(): # ecranul de joc
                 elif ship_rect.centerx < return_point:
                     ship_rect.centerx += 1
 
-            # asteroids
+            # asteroizi
             asteroid_list = moveAst(asteroid_list)
             drawAst(asteroid_list)
             game_run = checkAstCollision(asteroid_list)
             if game_run == False:
-                pygame.mixer.music.rewind()
                 return "game_over"
 
             game_run = other_death()
             if game_run == False:
-                pygame.mixer.music.rewind()
                 return "game_over"
             
             # combustibil
-            font = game_font
             current_fuel -= 1
             fuel_display -= 1
-            fuel_icon = pygame.transform.scale_by((pygame.image.load('assets/fuel.png')), 0.5)
-            fuel_icon_rect = fuel_icon.get_rect(center=(65, 60))
+            fuel_icon = pygame.transform.scale_by((pygame.image.load('assets/Images/fuel.png')), 0.5)
+            fuel_icon_rect = fuel_icon.get_rect(center=(70, 60))
             screen.blit(fuel_icon, fuel_icon_rect)
             draw_fuel_gauge(screen, x=100, y=50, width=200, height=25, current=current_fuel, max_fuel=2400)
             fuel_cans = moveFuelCan(fuel_cans)
@@ -562,7 +556,7 @@ def game(): # ecranul de joc
 
             # scor
             score_text = game_font.render(f"Score: {score}", True, (255,255,255))
-            screen.blit(score_text, (50, 100))
+            screen.blit(score_text, (50, 90))
 
             level = score // 1000
            
@@ -771,10 +765,10 @@ def volume(): # control volum
 
 def main_menu(): # meniul principal
     menu_Text = logo_font.render("AsteroSphere", True, "white")
-    menu_rect = menu_Text.get_rect(center=(640, 100))
+    menu_rect = menu_Text.get_rect(center=(640, 200))
 
-    play_button = Button(pos=(640, 250), image=button_surface, text_input="Play", base_clr="white", hover_clr="Green")
-    options_button = Button(pos=(640, 400), image=button_surface, text_input="Options", base_clr="white", hover_clr="Green")
+    play_button = Button(pos=(640, 350), image=button_surface, text_input="Play", base_clr="white", hover_clr="Green")
+    options_button = Button(pos=(640, 450), image=button_surface, text_input="Options", base_clr="white", hover_clr="Green")
     quit_button = Button(pos=(640, 550), image=button_surface, text_input="Quit", base_clr="white", hover_clr="Green")
     while True:
         screen.blit(bg_surface, (0,0))
@@ -808,12 +802,12 @@ def main_menu(): # meniul principal
 
 def game_over():
     game_over_Text = subtitle_font.render("Game Over", True, "white")
-    game_over_rect = game_over_Text.get_rect(center=(640, 200))
+    game_over_rect = game_over_Text.get_rect(center=(640, 250))
 
     highscore_Text = game_font.render(f"High Score: {load_high_score("highscore.txt")}", True, (255,255,255))
-    highscore_rect = highscore_Text.get_rect(center=(640,270))
+    highscore_rect = highscore_Text.get_rect(center=(640,310))
 
-    retry_button = Button(pos=(640, 400), image=button_surface, text_input="Retry", base_clr="white", hover_clr="Green")
+    retry_button = Button(pos=(640, 420), image=button_surface, text_input="Retry", base_clr="white", hover_clr="Green")
     back_button = Button(pos=(640, 550), image=button_surface, text_input="Back", base_clr="white", hover_clr="Green")
     while True:
         screen.blit(bg_surface, (0,0))
@@ -833,11 +827,17 @@ def game_over():
                 pygame.quit()
                 exit()
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    return "game"
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if back_button.checkClick(game_over_MousePos):
+                    pygame.mixer.music.rewind()
                     return "main_menu"
                 
                 if retry_button.checkClick(game_over_MousePos):
+                    pygame.mixer.music.rewind()
                     return "game"
 
         pygame.display.update()
@@ -845,6 +845,9 @@ def game_over():
 
 def main():
     state = "main_menu"
+    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.2)
+    channel1.set_volume(0.2)
     pygame.time.set_timer(update_score_event, 2000)
     pygame.time.set_timer(SPAWNFUEL, 0)
     pygame.time.set_timer(SPAWNFUEL, 10000)
@@ -865,6 +868,6 @@ def main():
             state = game_over()
         elif state == "quit":
             pygame.quit()
-            sys.exit()
+            exit()
 
 main()
