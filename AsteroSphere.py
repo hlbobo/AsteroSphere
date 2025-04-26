@@ -121,6 +121,8 @@ screen_width = 1280
 screen_height = 720
 screen = pygame.display.set_mode((screen_width,screen_height))
 pygame.display.set_caption("AsteroSphere")
+icon=pygame.image.load('assets/Images/icon.ico').convert()
+pygame.display.set_icon(icon)
 pygame.font.init()
 pygame.mixer.init(frequency = 44100, size = -16, channels = 2, buffer = 2**12)
 channel1 = pygame.mixer.Channel(1)
