@@ -9,7 +9,6 @@
 - Bullet firing and asteroid destruction
 - Fuel management system
 - Dash mechanics and power-ups
-- Menu system with volume and control settings
 - Local highscore saving
 
 ## 🛠 Requirements
